@@ -6,9 +6,9 @@
     <version>0.0.1-SNAPSHOT</version>
 	<relativePath>../JsMapperTools/pom.xml</relativePath>
   </parent>
-  <artifactId>JSsapperTools-Js</artifactId>
+  <artifactId>JsMapperTools-Js</artifactId>
   <packaging>jar</packaging>
-  <description>JSMapperTools for JavaScript</description>
+  <description>JsMapperTools for JavaScript</description>
   <dependencies>
   	<dependency>
   		<groupId>com.ten01.jsmappertools</groupId>
