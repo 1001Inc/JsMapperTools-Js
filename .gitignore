@@ -1,0 +1,25 @@
+/build
+/code
+.factorypath
+bin
+lib/
+/build
+target/
+
+# Eclipse artifacts, including WTP generated manifests
+.classpath
+.project
+.settings
+/.metadata/
+/.recommenders/
+/RemoteSystemsTempFiles/
+
+# IDEA artifacts and output dirs
+*.iml
+*.ipr
+*.iws
+.idea
+out
+test-output
+
+/temp/
