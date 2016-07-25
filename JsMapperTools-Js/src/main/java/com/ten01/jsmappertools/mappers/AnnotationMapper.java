@@ -5,6 +5,7 @@ import static com.ten01.jsmapper.js.annotations.AnnotationMethodUtils.isAnnotate
 
 import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.ten01.jsmapper.js.annotations.AsyncFunction;
+import com.ten01.jsmapper.js.annotations.GeneratorFunction;
 
 /**
  * @author chidveer chinthauntla
@@ -18,6 +19,8 @@ public class AnnotationMapper {
 				return "";
 			if(isAnnotatedWith(annotationName, AsyncFunction.class)){
 				return getAnnotationDefaultValue(AsyncFunction.class);
+			}else if(isAnnotatedWith(annotationName, GeneratorFunction.class)){
+				return getAnnotationDefaultValue(GeneratorFunction.class);
 			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

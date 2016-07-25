@@ -4,7 +4,12 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AdvancedClass<K,V> extends SimpleClass implements Serializable, Cloneable{
+import com.ten01.jsmapper.js.BaseJs;
+
+/**
+ * @author chidveer chinthauntla
+ */
+public class AdvancedClass<K,V> extends SimpleClass implements BaseJs, Serializable, Cloneable{
 
 	private static final long serialVersionUID = 1L;
 	private List<String> l ;
@@ -17,6 +22,7 @@ public class AdvancedClass<K,V> extends SimpleClass implements Serializable, Clo
 	}
 	
 	public static void main(String[] args) {
+		document.getElementById("id");
 		AdvancedClass<String, Long> adv = new AdvancedClass<>("dfgd",34L);
 		adv.reset();
 		adv.myMethod("2123");

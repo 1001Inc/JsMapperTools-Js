@@ -33,7 +33,6 @@ import com.sun.tools.javac.tree.JCTree.JCNewClass;
 import com.sun.tools.javac.tree.JCTree.JCTypeApply;
 import com.sun.tools.javac.tree.JCTree.JCTypeCast;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
-import com.sun.tools.javac.tree.Pretty.UncheckedIOException;
 import com.sun.tools.javac.tree.Pretty;
 import com.sun.tools.javac.tree.TreeInfo;
 import com.sun.tools.javac.util.Convert;
@@ -42,6 +41,7 @@ import com.sun.tools.javac.util.Name;
 import com.ten01.jsmapper.js.common.JSKeyWords;
 import com.ten01.jsmapper.js.common.JavaKeyWords;
 import com.ten01.jsmappertools.mappers.AnnotationMapper;
+import com.ten01.jsmappertools.mappers.ClassAnnotationVisitor;
 
 /**
  * @author chidveer chinthauntla
@@ -49,6 +49,7 @@ import com.ten01.jsmappertools.mappers.AnnotationMapper;
 public class PrettyJs extends Pretty {
 	
 	private boolean methodArg = false;
+	private ClassAnnotationVisitor classAnnotationVisitor;
 
 	public PrettyJs(Writer out, Boolean sourceOutput) {
 		super(out, sourceOutput);
@@ -92,44 +93,61 @@ public class PrettyJs extends Pretty {
             println(); align();
             printDocComment(tree);
             //printAnnotations(tree.mods.annotations);
+            processClassAnnotations(tree.mods.annotations);
             //printFlags(tree.mods.flags & ~INTERFACE);
             Name enclClassNamePrev = enclClassName;
             enclClassName = tree.name;
-            if ((tree.mods.flags & INTERFACE) != 0) {
-                print("interfaces not supported: " + tree.name);
-                return;
-                /*printTypeParameters(tree.typarams);
-                if (tree.implementing.nonEmpty()) {
-                    print(" extends ");
-                    printExprs(tree.implementing);
-                }*/
-            } else {
-                if ((tree.mods.flags & ENUM) != 0){
-                	print("enum " + tree.name);
-                }
-                else
-                    print("class " + tree.name);
-                //printTypeParameters(tree.typarams);
-                if (tree.extending != null) {
-                    print(" extends ");
-                    printExpr(tree.extending);
-                }
-                /*if (tree.implementing.nonEmpty()) {
-                    print(" implements ");
-                    printExprs(tree.implementing);
-                }*/
-            }
-            print(" ");
-            if ((tree.mods.flags & ENUM) != 0) {
-                printEnumBody(tree.defs);
-            } else {
-                printBlock(tree.defs);
+            if(!isFunctionalClass()){
+	            if ((tree.mods.flags & INTERFACE) != 0) {
+	                print("interfaces not supported: " + tree.name);
+	                return;
+	                /*printTypeParameters(tree.typarams);
+	                if (tree.implementing.nonEmpty()) {
+	                    print(" extends ");
+	                    printExprs(tree.implementing);
+	                }*/
+	            } else {
+	                if ((tree.mods.flags & ENUM) != 0){
+	                	print("enum " + tree.name);
+	                }
+	                else
+	                    print("class " + tree.name);
+	                //printTypeParameters(tree.typarams);
+	                if (tree.extending != null) {
+	                    print(" extends ");
+	                    printExpr(tree.extending);
+	                }
+	                /*if (tree.implementing.nonEmpty()) {
+	                    print(" implements ");
+	                    printExprs(tree.implementing);
+	                }*/
+	            }
+	            print(" ");
+	            if ((tree.mods.flags & ENUM) != 0) {
+	                printEnumBody(tree.defs);
+	            } else {
+	                printBlock(tree.defs);
+	            }
+            }else {
+            	printNoParamBlock(tree.defs);
             }
             enclClassName = enclClassNamePrev;
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }
+	
+	private void processClassAnnotations(List<JCAnnotation> annotations) throws IOException{
+		classAnnotationVisitor = new ClassAnnotationVisitor();
+		for (List<JCAnnotation> l = annotations; l.nonEmpty(); l = l.tail) {
+			if (l.head != null) {
+				l.head.accept(classAnnotationVisitor);
+            }
+            //print(" ");
+            //println();
+            //align();
+        }
+	}
 	
 	public void printEnumBody(List<JCTree> stats) throws IOException {
         print("{");
@@ -173,16 +191,20 @@ public class PrettyJs extends Pretty {
             printDocComment(tree);
             printExpr(tree.mods);
             //printTypeParameters(tree.typarams);
-            if(tree.mods != null && TreeInfo.flagNames(tree.mods.flags).contains(JavaKeyWords.STATIC)){
-            	print(JSKeyWords.STATIC+" ");
-            }
-            if (tree.name == tree.name.table.names.init) {
-                //print(enclClassName != null ? enclClassName : tree.name);
-            	print(CONSTRUCTOR);
-            } else {
-                //printExpr(tree.restype);
-                print(tree.name);
-            	//print("constructor");
+            if(isFunctionalClass()){
+            	print(JSKeyWords.FUNCTION+" "+tree.name);
+            }else{
+	            if(tree.mods != null && TreeInfo.flagNames(tree.mods.flags).contains(JavaKeyWords.STATIC)){
+	            	print(JSKeyWords.STATIC+" ");
+	            }
+	            if (tree.name == tree.name.table.names.init) {
+	                //print(enclClassName != null ? enclClassName : tree.name);
+	            	print(CONSTRUCTOR);
+	            } else {
+	                //printExpr(tree.restype);
+	                print(tree.name);
+	            	//print("constructor");
+	            }
             }
             print("(");
             //TODO: chek whats this
@@ -216,6 +238,10 @@ public class PrettyJs extends Pretty {
         }
     }
 	
+	private boolean isFunctionalClass() {
+		return classAnnotationVisitor.isFunctionalClass();
+	}
+
 	public void visitBlock(JCBlock tree) {
         try {
         	//###############

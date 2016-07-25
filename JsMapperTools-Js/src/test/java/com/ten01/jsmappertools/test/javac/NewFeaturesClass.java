@@ -4,10 +4,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.ten01.jsmapper.js.BaseJs;
 import com.ten01.jsmapper.js.annotations.AsyncFunction;
+import com.ten01.jsmapper.js.annotations.GeneratorFunction;
 
-
-public class NewFeaturesClass {
+/**
+ * @author chidveer chinthauntla
+ */
+public class NewFeaturesClass implements BaseJs{
 	
 	//TODO: mapping array classes
 	List<? extends String> list = new ArrayList<>(Arrays.asList(new String[]{"Hello1", "Hello2", "Hello3", "a", "B"}));
@@ -25,7 +29,7 @@ public class NewFeaturesClass {
 	public void doLamdasWithContext(){
 		final int abc = 123;
 		list.sort((a,b) -> {
-			System.out.println(abc);
+			console.log(abc);
 			return a.compareTo(b);
 		});		
 	}
@@ -37,7 +41,12 @@ public class NewFeaturesClass {
 	
 	@AsyncFunction
 	public void callAsyn(){
-		System.out.println("my call is a synch");
+		console.log("my call is a synch");
+	}
+	
+	@GeneratorFunction
+	public void generator(){
+		console.log("I'm a generator");
 	}
 
 }

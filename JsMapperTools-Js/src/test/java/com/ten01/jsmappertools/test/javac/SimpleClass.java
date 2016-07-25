@@ -1,10 +1,16 @@
 package com.ten01.jsmappertools.test.javac;
 
-public class SimpleClass {
+import com.ten01.jsmapper.js.BaseJs;
+
+/**
+ * @author chidveer chinthauntla
+ */
+public class SimpleClass implements BaseJs{
 	
-	static{
+	void sayHello(){
 		int i=0;
 		i++;
+		console.log("Hello");
 	}
 
 }
