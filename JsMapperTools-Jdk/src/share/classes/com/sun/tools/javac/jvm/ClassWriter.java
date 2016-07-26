@@ -70,7 +70,7 @@ public class ClassWriter extends ClassFile {
 
     /** Switch: verbose output.
      */
-    private boolean verbose;
+    protected boolean verbose;
 
     /** Switch: scramble private field names.
      */
@@ -143,13 +143,13 @@ public class ClassWriter extends ClassFile {
 
     /** The log to use for verbose output.
      */
-    private final Log log;
+    protected final Log log;
 
     /** The name table. */
     private final Names names;
 
     /** Access to files. */
-    private final JavaFileManager fileManager;
+    protected final JavaFileManager fileManager;
 
     /** Sole signature generator */
     private final CWSignatureGenerator signatureGen;

@@ -741,7 +741,7 @@ public class JavacFileManager extends BaseFileManager implements StandardJavaFil
         return getFileForOutput(location, name, sibling);
     }
 
-    private JavaFileObject getFileForOutput(Location location,
+    public JavaFileObject getFileForOutput(Location location,
                                             RelativeFile fileName,
                                             FileObject sibling)
         throws IOException

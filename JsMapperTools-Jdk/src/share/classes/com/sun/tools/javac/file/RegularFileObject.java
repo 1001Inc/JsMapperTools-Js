@@ -50,7 +50,7 @@ import java.text.Normalizer;
  * This code and its internal interfaces are subject to change or
  * deletion without notice.</b>
  */
-class RegularFileObject extends BaseFileObject {
+public class RegularFileObject extends BaseFileObject {
 
     /** Have the parent directories been created?
      */

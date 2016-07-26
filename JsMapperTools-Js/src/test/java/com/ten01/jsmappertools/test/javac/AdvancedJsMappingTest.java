@@ -16,7 +16,7 @@ public class AdvancedJsMappingTest extends AbstractTest {
 	
 	@Test
 	public void mapAdavacedJsClass(){
-		Main.compileToJs(OPTIONS_AND_FILES);
+		Main.translateToJs(OPTIONS_AND_FILES);
 	}
 	
 	//@Test

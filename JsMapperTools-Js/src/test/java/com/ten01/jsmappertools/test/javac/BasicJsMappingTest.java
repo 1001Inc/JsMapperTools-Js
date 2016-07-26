@@ -49,7 +49,7 @@ public class BasicJsMappingTest extends AbstractTest {
 	 */
 	@Test
 	public void mapSimpleClass(){
-		Main.compileToJs(OPTIONS_AND_FILES);
+		Main.translateToJs(OPTIONS_AND_FILES);
 	}
 	
 	

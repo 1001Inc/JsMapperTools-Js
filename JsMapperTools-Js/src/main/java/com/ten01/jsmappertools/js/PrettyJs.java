@@ -2,12 +2,15 @@ package com.ten01.jsmappertools.js;
 
 import static com.sun.tools.javac.code.Flags.ENUM;
 import static com.sun.tools.javac.code.Flags.INTERFACE;
+import static com.sun.tools.javac.code.Flags.VARARGS;
 import static com.sun.tools.javac.tree.JCTree.Tag.IMPORT;
 import static com.sun.tools.javac.tree.JCTree.Tag.NEWCLASS;
 import static com.sun.tools.javac.tree.JCTree.Tag.SELECT;
 import static com.ten01.jsmapper.js.common.JSKeyWords.CONSTRUCTOR;
 import static com.ten01.jsmapper.js.common.JSKeyWords.LET;
 import static com.ten01.jsmapper.js.common.JavaKeyWords.STATIC;
+import static com.ten01.jsmappertools.commons.FileUtils.getScriptTag;
+import static com.ten01.jsmappertools.commons.FileUtils.toJsFile;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -19,6 +22,8 @@ import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCBlock;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
+import com.sun.tools.javac.tree.JCTree.JCEnhancedForLoop;
+import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCExpressionStatement;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
@@ -38,6 +43,7 @@ import com.sun.tools.javac.tree.TreeInfo;
 import com.sun.tools.javac.util.Convert;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Name;
+import com.ten01.jsmapper.js.JsKeyWordUtils;
 import com.ten01.jsmapper.js.common.JSKeyWords;
 import com.ten01.jsmapper.js.common.JavaKeyWords;
 import com.ten01.jsmappertools.mappers.AnnotationMapper;
@@ -58,10 +64,8 @@ public class PrettyJs extends Pretty {
 	public void printUnit(JCCompilationUnit tree, JCClassDecl cdef) throws IOException {
         docComments = tree.docComments;
         printDocComment(tree);
-        if (tree.pid != null) { //FIXME: if pid is null it will not add the file name
-            print("// "+toJsFormat(tree.pid != null? tree.pid.toString():""+"."+tree.getSourceFile().getName()));
-            println();
-        }
+        print("// "+toJsFile(tree));;
+        println();
         boolean firstImport = true;
         for (List<JCTree> l = tree.defs;
         l.nonEmpty() && (cdef == null || l.head.hasTag(IMPORT));
@@ -129,7 +133,9 @@ public class PrettyJs extends Pretty {
 	                printBlock(tree.defs);
 	            }
             }else {
+            	print(" ( ");
             	printNoParamBlock(tree.defs);
+            	print(" )(); ");
             }
             enclClassName = enclClassNamePrev;
         } catch (IOException e) {
@@ -181,6 +187,7 @@ public class PrettyJs extends Pretty {
     }
 	
 	//TODO: add  methos for ema6
+	//TODO: add Spread Operator
 	public void visitMethodDef(JCMethodDecl tree) {
         try {
             // when producing source output, omit anonymous constructors
@@ -261,7 +268,7 @@ public class PrettyJs extends Pretty {
 	
 	private void printNoParamBlock(List<? extends JCTree> stats) throws IOException {
        //  print("{");
-        println();
+        //println();
        // indent();
         printStats(stats);
        // undent();
@@ -280,30 +287,47 @@ public class PrettyJs extends Pretty {
 	
 	 public void visitApply(JCMethodInvocation tree) {
         try {
-            if (!tree.typeargs.isEmpty()) {
-                if (tree.meth.hasTag(SELECT)) {
-                    JCFieldAccess left = (JCFieldAccess)tree.meth;
-                    printExpr(left.selected);
-                    /*print(".<");
-                    printExprs(tree.typeargs);
-                    print(">" + left.name);*/
-                } else {
-                    /*print("<");
-                    printExprs(tree.typeargs);
-                    print(">");*/
-                    printExpr(tree.meth);
-                }
-            } else {
-                printExpr(tree.meth);
+            if(!isKeyword(tree.meth)){
+		    	if (!tree.typeargs.isEmpty()) {
+		            if (tree.meth.hasTag(SELECT)) {
+		                JCFieldAccess left = (JCFieldAccess)tree.meth;
+		                printExpr(left.selected);
+		                /*print(".<");
+		                printExprs(tree.typeargs);
+		                print(">" + left.name);*/
+		            } else {
+		                /*print("<");
+		                printExprs(tree.typeargs);
+		                print(">");*/
+		                printExpr(tree.meth);
+		            }
+		        } else {
+		            printExpr(tree.meth);
+		        }
+		        print("(");
+		        printExprs(tree.args);
+		        print(")");
+            }else{
+            	print(" "+keywordValue(tree.meth)+" ");
+		        printExprs(tree.args);
+		        print(" ");
             }
-            print("(");
-            printExprs(tree.args);
-            print(")");
+            
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }
-	 //FIXME: add the const for final variables
+	private String keywordValue(JCExpression meth) {
+		if(meth == null) return "";
+		return JsKeyWordUtils.getJsKeyWord(meth.toString());
+	}
+
+	private boolean isKeyword(JCExpression meth) {
+		if(meth == null) return false;
+		return JsKeyWordUtils.isAJsKeyWord(meth.toString());
+	}
+
+	//FIXME: add the const for final variables
 	public void visitVarDef(JCVariableDecl tree) {
         try {
             if (docComments != null && docComments.hasComment(tree)) {
@@ -317,7 +341,7 @@ public class PrettyJs extends Pretty {
                 print(tree.name);
                 if (tree.init != null) {
                     if (sourceOutput && tree.init.hasTag(NEWCLASS)) {
-                        print(" /*enum*/ ");
+                       // print(" /*enum*/ ");
                         JCNewClass init = (JCNewClass) tree.init;
                         if (init.args != null && init.args.nonEmpty()) {
                             print("(");
@@ -340,8 +364,10 @@ public class PrettyJs extends Pretty {
             	if(tree.mods != null && TreeInfo.flagNames(tree.mods.flags).contains(JavaKeyWords.FINAL)){
                 	print(JSKeyWords.CONST+" ");
                 }
-                /*if ((tree.mods.flags & VARARGS) != 0) {
-                    JCTree vartype = tree.vartype;
+            	if(!isMethodArg())
+        			print(LET+" "); 
+                if ((tree.mods.flags & VARARGS) != 0) {
+                    /*JCTree vartype = tree.vartype;
                     List<JCAnnotation> tas = null;
                     if (vartype instanceof JCAnnotatedType) {
                         tas = ((JCAnnotatedType)vartype).annotations;
@@ -351,14 +377,12 @@ public class PrettyJs extends Pretty {
                     if (tas != null) {
                         print(' ');
                         printTypeAnnotations(tas);
-                    }
-                    print("... " + tree.name);
+                    }*/
+                    print(" ..." + tree.name);
                 } else {
-                    printExpr(tree.vartype);*/
-            		if(!isMethodArg())
-            			print(LET+" "); 
+                    //printExpr(tree.vartype);
                     print(tree.name);
-                //}
+                }
                 if (tree.init != null) {
                     print(" = ");
                     printExpr(tree.init);
@@ -377,7 +401,7 @@ public class PrettyJs extends Pretty {
             	//TODO: check if selected can do this
             	file = file.substring(0, file.lastIndexOf("\\.")); 
             }
-            file = toJsFormat(file);
+            file = toJsFile(file);
             print(getScriptTag(file));
             println();
         } catch (IOException e) {
@@ -385,20 +409,6 @@ public class PrettyJs extends Pretty {
         }
     }
 
-	private String getScriptTag(String file) {
-		return "<script src=\""+file+"\"/> ";
-	}
-
-	private String toJsFormat(String file) {
-		if(file.endsWith(".java"))
-			file = file.replace("\\.java", "");
-		return replacePathSerperators(file)+".js";
-	}
-
-	private String replacePathSerperators(String file) {
-		return file.replaceAll("\\.", "/");
-	}
-	
 	public void visitLiteral(JCLiteral tree) {
         try {
             switch (tree.typetag) {
@@ -569,6 +579,19 @@ public class PrettyJs extends Pretty {
             printExprs(tree.args);
             print(")");*/
         	print(AnnotationMapper.mapAnnotation((JCIdent)tree.annotationType));
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+	
+	public void visitForeachLoop(JCEnhancedForLoop tree) {
+        try {
+            print("for (");
+            printExpr(tree.var);
+            print(" of ");
+            printExpr(tree.expr);
+            print(") ");
+            printStat(tree.body);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

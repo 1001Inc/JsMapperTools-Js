@@ -443,7 +443,7 @@ public class JavaCompiler {
             log.setDiagnosticFormatter(RichDiagnosticFormatter.instance(context));
     }
 
-    private void checkForObsoleteOptions(Target target) {
+    protected void checkForObsoleteOptions(Target target) {
         // Unless lint checking on options is disabled, check for
         // obsolete source and target options.
         boolean obsoleteOptionFound = false;
@@ -821,7 +821,7 @@ public class JavaCompiler {
     }
 
     /** Track when the JavaCompiler has been used to compile something. */
-    private boolean hasBeenUsed = false;
+    protected boolean hasBeenUsed = false;
     public long start_msec = 0;
     public long elapsed_msec = 0;
 
@@ -1037,7 +1037,7 @@ public class JavaCompiler {
     /**
      * Object to handle annotation processing.
      */
-    private JavacProcessingEnvironment procEnvImpl = null;
+    protected JavacProcessingEnvironment procEnvImpl = null;
 
     /**
      * Check if we should process annotations.
@@ -1752,7 +1752,7 @@ public class JavaCompiler {
         }
     }
 
-    private static long now() {
+    protected static long now() {
         return System.currentTimeMillis();
     }
 

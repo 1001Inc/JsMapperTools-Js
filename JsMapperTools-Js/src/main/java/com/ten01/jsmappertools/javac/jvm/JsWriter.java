@@ -25,7 +25,18 @@
 
 package com.ten01.jsmappertools.javac.jvm;
 
+import static com.ten01.jsmappertools.commons.FileUtils.toJsFile;
+import static javax.tools.StandardLocation.CLASS_OUTPUT;
+
+import java.io.IOException;
+import java.io.OutputStream;
+
+import javax.tools.JavaFileObject;
+
+import com.sun.tools.javac.file.JavacFileManager;
+import com.sun.tools.javac.file.RelativePath.RelativeFile;
 import com.sun.tools.javac.jvm.ClassWriter;
+import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
 import com.sun.tools.javac.util.Context;
 
 /**
@@ -45,14 +56,35 @@ public class JsWriter extends ClassWriter {
 	}
    
 	/** Get the ClassWriter instance for this context. */
-    public static ClassWriter instance(Context context) {
+    public static JsWriter instance(Context context) {
         ClassWriter instance = context.get(classWriterKey);
         if (instance == null)
             instance = new JsWriter(context);
-        return instance;
+        return (JsWriter)instance;
     }
     
-    
+    public JavaFileObject writeJs(JCCompilationUnit jTree)
+            throws IOException, PoolOverflow, StringOverflow{
+            JavaFileObject outFile
+                = ((JavacFileManager)fileManager).getFileForOutput(CLASS_OUTPUT,
+                		new RelativeFile(toJsFile(jTree)),
+                		jTree.getSourceFile());
+            OutputStream out = outFile.openOutputStream();
+            try {
+            	out.write(jTree.toString().getBytes());
+                if (verbose)
+                    log.printVerbose("wrote.file", outFile);
+                out.close();
+                out = null;
+            } finally {
+                if (out != null) {
+                    // if we are propagating an exception, delete the file
+                    out.close();
+                    outFile.delete();
+                    outFile = null;
+                }
+            }
+            return outFile; // may be null if write failed
+        }
 
-    
 }

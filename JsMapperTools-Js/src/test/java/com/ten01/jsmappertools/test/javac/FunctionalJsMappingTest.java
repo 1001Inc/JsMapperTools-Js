@@ -13,7 +13,7 @@ public class FunctionalJsMappingTest extends AbstractTest {
 
 	@Test
 	public void mapNewFeatureTest(){
-		Main.compileToJs(OPTIONS_AND_FILES);
+		Main.translateToJs(OPTIONS_AND_FILES);
 	}
 	
 

@@ -109,7 +109,7 @@ public class Main {
     private Option[] recognizedOptions =
             Option.getJavaCompilerOptions().toArray(new Option[0]);
 
-    private OptionHelper optionHelper = new OptionHelper() {
+    protected OptionHelper optionHelper = new OptionHelper() {
         @Override
         public String get(Option option) {
             return options.get(option);

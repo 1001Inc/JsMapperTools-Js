@@ -42,6 +42,9 @@ public class NewFeaturesClass implements BaseJs{
 	@AsyncFunction
 	public void callAsyn(){
 		console.log("my call is a synch");
+		//FIXME: error on, keyword usage
+		Object yield_val = yield("234");
+		console.log(yield_val);
 	}
 	
 	@GeneratorFunction
