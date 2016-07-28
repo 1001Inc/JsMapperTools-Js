@@ -6,6 +6,7 @@ import static com.sun.tools.javac.code.Flags.VARARGS;
 import static com.sun.tools.javac.tree.JCTree.Tag.IMPORT;
 import static com.sun.tools.javac.tree.JCTree.Tag.NEWCLASS;
 import static com.sun.tools.javac.tree.JCTree.Tag.SELECT;
+import static com.sun.tools.javac.tree.JCTree.Tag.VARDEF;
 import static com.ten01.jsmapper.js.common.JSKeyWords.CONSTRUCTOR;
 import static com.ten01.jsmapper.js.common.JSKeyWords.LET;
 import static com.ten01.jsmapper.js.common.JavaKeyWords.STATIC;
@@ -14,6 +15,8 @@ import static com.ten01.jsmappertools.commons.FileUtils.toJsFile;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.HashSet;
+import java.util.Set;
 
 import com.sun.source.tree.MemberReferenceTree.ReferenceMode;
 import com.sun.tools.javac.code.Flags;
@@ -35,6 +38,7 @@ import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.tree.JCTree.JCNewClass;
+import com.sun.tools.javac.tree.JCTree.JCStatement;
 import com.sun.tools.javac.tree.JCTree.JCTypeApply;
 import com.sun.tools.javac.tree.JCTree.JCTypeCast;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
@@ -56,6 +60,7 @@ public class PrettyJs extends Pretty {
 	
 	private boolean methodArg = false;
 	private ClassAnnotationVisitor classAnnotationVisitor;
+	private Set<String> instanceVar;
 
 	public PrettyJs(Writer out, Boolean sourceOutput) {
 		super(out, sourceOutput);
@@ -130,7 +135,7 @@ public class PrettyJs extends Pretty {
 	            if ((tree.mods.flags & ENUM) != 0) {
 	                printEnumBody(tree.defs);
 	            } else {
-	                printBlock(tree.defs);
+	                printClassBlock(tree.defs);
 	            }
             }else {
             	print(" ( ");
@@ -143,6 +148,56 @@ public class PrettyJs extends Pretty {
         }
     }
 	
+	private void printClassBlock(List<? extends JCTree> stats) throws IOException {
+		//processInstanceVar(stats);
+        print("{");
+        println();
+        indent();
+        instanceVar = new HashSet<String>();
+        printClassStats(stats);
+        undent();
+        align();
+        print("}");
+		
+	}
+
+	private void printClassStats(List<? extends JCTree> stats) throws IOException {
+		for (List<? extends JCTree> l = stats; l.nonEmpty(); l = l.tail) {
+			align();
+			if(l.head.hasTag(VARDEF)){
+				visitVarDef((JCVariableDecl)l.head, true);
+			}else{				
+				printStat(l.head);				
+			}
+			println();
+		}
+		
+	}
+
+	private void processInstanceVar(List<? extends JCTree> trees) {
+		instanceVar = new HashSet<String>();
+		for (List<? extends JCTree> l = trees; l.nonEmpty(); l = l.tail) {
+			if(!l.head.hasTag(VARDEF)){
+				
+			}
+            /*if(l.head instanceof 
+            	if (tree.init.head.hasTag(VARDEF)) {
+                    printExpr(tree.init.head);
+                    for (List<JCStatement> l = tree.init.tail; l.nonEmpty(); l = l.tail) {
+                        JCVariableDecl vdef = (JCVariableDecl)l.head;
+                        print(", " + vdef.name + " = ");
+                        printExpr(vdef.init);
+                    }
+                } else {
+                    printExprs(tree.init);
+                }
+                
+                --------
+                (((JCVariableDecl) t).mods.flags & ENUM) != 0;	
+            		*/
+        }
+	}
+
 	private void processClassAnnotations(List<JCAnnotation> annotations) throws IOException{
 		classAnnotationVisitor = new ClassAnnotationVisitor();
 		for (List<JCAnnotation> l = annotations; l.nonEmpty(); l = l.tail) {
@@ -327,9 +382,12 @@ public class PrettyJs extends Pretty {
 		return JsKeyWordUtils.isAJsKeyWord(meth.toString());
 	}
 
-	//FIXME: add the const for final variables
 	public void visitVarDef(JCVariableDecl tree) {
-        try {
+		visitVarDef(tree, false);
+    }
+	
+	void visitVarDef(JCVariableDecl tree, boolean isClassVar){
+		try {
             if (docComments != null && docComments.hasComment(tree)) {
                 println(); align();
             }
@@ -361,10 +419,13 @@ public class PrettyJs extends Pretty {
                 }
             } else {
                 //printExpr(tree.mods);
+            	//processVarMods(tree.mods);
+            	if(tree.mods != null && TreeInfo.flagNames(tree.mods.flags).contains(JavaKeyWords.STATIC)){
+	            	print(JSKeyWords.STATIC+" ");
+	            }
             	if(tree.mods != null && TreeInfo.flagNames(tree.mods.flags).contains(JavaKeyWords.FINAL)){
                 	print(JSKeyWords.CONST+" ");
-                }
-            	if(!isMethodArg())
+                }else if(!isMethodArg() && !isClassVar)
         			print(LET+" "); 
                 if ((tree.mods.flags & VARARGS) != 0) {
                     /*JCTree vartype = tree.vartype;
@@ -392,8 +453,13 @@ public class PrettyJs extends Pretty {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-    }
+	}
 	
+	private void processVarMods(JCModifiers mods) {
+		// TODO Auto-generated method stub
+		
+	}
+
 	public void visitImport(JCImport tree) {
         try {
         	String file = tree.qualid.toString(); 

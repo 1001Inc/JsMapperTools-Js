@@ -14,7 +14,8 @@ import com.ten01.jsmapper.js.annotations.GeneratorFunction;
 public class NewFeaturesClass implements BaseJs{
 	
 	//TODO: mapping array classes
-	List<? extends String> list = new ArrayList<>(Arrays.asList(new String[]{"Hello1", "Hello2", "Hello3", "a", "B"}));
+	//List<? extends String> list = new ArrayList<>(Arrays.asList(new String[]{"Hello1", "Hello2", "Hello3", "a", "B"}));
+	List<? extends String> list = new ArrayList<>();
 	
 	public void doLamdas(){
 		list.sort((a,b) -> {

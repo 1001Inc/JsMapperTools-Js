@@ -21,7 +21,7 @@ public class AdvancedClass<K,V> extends SimpleClass implements BaseJs, Serializa
 		this.value = value;
 	}
 	
-	/*public static void main(String[] args) {
+	public static void main(String[] args) {
 		document.getElementById("id").innerHTML = "Hello 123";
 		AdvancedClass<String, Long> adv = new AdvancedClass<>("dfgd",34L);
 		adv.reset();
@@ -34,12 +34,13 @@ public class AdvancedClass<K,V> extends SimpleClass implements BaseJs, Serializa
 		l.add(str[0]);
 	}
 	
+	@SuppressWarnings("unchecked")
 	public void doCasts(){
 		Object str = new String("some object");
 		Object tempObj = new AdvancedClass<String, Long>("dfgd",34L);
 		l.add((String)str);
 		l.add(((AdvancedClass<String, Long>)tempObj).toString());
-	}*/
+	}
 	
 	void printAll(){
 		for(String s : l){

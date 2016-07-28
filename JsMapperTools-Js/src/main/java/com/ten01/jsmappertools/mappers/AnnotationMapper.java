@@ -26,7 +26,8 @@ public class AnnotationMapper {
 			// TODO Auto-generated catch block
 			throw new RuntimeException(e);
 		}
-		throw new RuntimeException("Not a valid Annotation");
+		//throw new RuntimeException("Not a valid Annotation: "+annotation);
+		return "";
 	}
 
 }
